@@ -155,7 +155,7 @@ const GameScreen = (props) => {
 
 위 코드가 동작을 하지 않아 따로 cmd에 expo-screen-installation을 install하고 import를 그에 맞춰했다.
 
-```cmd
+```bash
 // 프로젝트 root directory에서
 expo install expo-screen-installation
 ```
@@ -200,3 +200,74 @@ export default Header;
 | <img src="images/2020-06-23-17-56-09.png" width=220 height=400> | <img src="images/2020-06-23-17-57-07.png" width=200 height=400> |
 
 이렇게 나온다.
+
+이를 심화해서 Platform.select 메소드를 사용하면 아래와 같이 사용하여 platform os마다 Styles를 다르게 줄 수도 있다.
+
+```js
+import { View, Text, StyleSheet, Platform } from "react-native";
+
+const Header = (props) => {
+    return (
+        <View
+            style={{
+                ...styles.headerBase,
+                // 아래 코드에 집중
+                ...Platform.select({
+                    ios: styles.headerIOS,
+                    android: styles.headerAndroid,
+                }),
+            }}
+        ></View>
+    );
+};
+const styles = StyleSheet.create({
+    headerBase: {},
+    headerIOS: {},
+    headerAndroid: {},
+});
+```
+
+또한, 이는 MainButton.js지만(현재 이 repository에는 해당 내용 존재하지 않음) 이렇게 쓸 수 있다는 것만 참고하자.
+
+```js
+const MainButton = (props) => {
+    let ButtonComponent = TouchableOpacity;
+    if (Platform.OS === "android" && Platform.version >= 21) {
+        ButtonComponent = TouchableNativeFeedback;
+    }
+    return (
+        // 필요한 것 제외하고는 생략하기
+        <View>
+            <ButtonComponent></ButtonComponent>
+        </View>
+    );
+};
+```
+
+Android, IOS에 따라 다른 js code 적용되게 하려면,
+MainButton.js 파일에서  
+=> MainButton.android.js  
+=> MainButton.ios.js  
+이렇게 두개의 파일을 생성한다.
+
+그런데 android인 지 ios인지 체크할 필요는 없으므로, Platform.OS 와 관련된 코드는 삭제해도 무방하다.
+또한, MainButton을 참조하는 js 파일에서 import문을 작성할 때 MainButton.android나 MainButton.ios 로 부르지 않고, MainButton으로 부른다.
+
+#### SafeAreaView 컴포넌트
+
+ios의 특이한 화면구성을 생각했을 때(전면 카메라가 화면쪽으로 돌출되어있는 디자인), 이를 고려한 "SafeAreaView"가 필요하다. 이는 화면의 물리적 한계를 보완하고자 하는 컴포넌트라고 한다.
+
+그래서 App.js에서 모든 화면을 감싸는 형태로 render해 주면 ios의 화면구성을 더 수월하게 할 수 있다.
+
+```js
+import { StyleSheet, Text, View, SafeAreaView } from "react-native";
+
+export default function App() {
+    return (
+        <SafeAreaView style={styles.screen}>
+            <Header title="Guess a number"></Header>
+            {content}
+        </SafeAreaView>
+    );
+}
+```
